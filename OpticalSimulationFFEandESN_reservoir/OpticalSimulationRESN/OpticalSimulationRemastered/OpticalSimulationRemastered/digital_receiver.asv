@@ -1,0 +1,31 @@
+function [ber_r] = digital_receiver(photocurrent, y, points_per_symbol, n_ignore, M)
+
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % This function performs the post_processing at the digital backend
+    % Inputs
+    % photocurrent: The photocurrent of the photodiode (A)
+    % y: The symbols sent by the transmitter
+    % points_per_symbol: The points per symbol for the time grid
+    % n_ignore: The symbols to be ignored due to laser's set on time
+    % M : The PAM-M type
+    % plot_eye_diagram: Plot the Eye diagram
+    % Outputs
+    % ber: The bit error rate
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    start = points_per_symbol/2;
+    downsampled_signal = photocurrent(start:points_per_symbol:length(photocurrent));
+    signal = downsampled_signal(n_ignore:end);
+    signal = signal - mean(signal);
+    n_signal = signal/max(abs(signal));
+    x = (M-1)*n_signal;
+    x_star = pamdemod(x,M);
+    y = pamdemod(y,M);
+    y = y(n_ignore:end);
+    [~, ber_r] = biterr(x_star,y);
+    
+    fprintf('The BER is %f\n\n', ber_r);
+
+end
+
